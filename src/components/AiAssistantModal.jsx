@@ -22,7 +22,7 @@ const AiAssistantModal = ({ isOpen, onClose, job }) => {
         setResult(''); // Clear previous result
 
         try {
-            const response = await fetch('http://localhost:8000/api/generate', {
+            const response = await fetch('https://jobquest-backend-ip8m.onrender.com/api/generate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
