@@ -1,7 +1,13 @@
 import React from 'react';
 import { LayoutDashboard, Kanban, Settings, LogOut } from 'lucide-react';
 
+import { supabase } from '../lib/supabase';
+
 const DashboardLayout = ({ children }) => {
+    const handleSignOut = async () => {
+        await supabase.auth.signOut();
+    };
+
     return (
         <div className="flex h-screen w-full bg-[#FAFAFA]">
             {/* Sidebar */}
@@ -35,12 +41,16 @@ const DashboardLayout = ({ children }) => {
                 </nav>
 
                 <div className="border-t border-gray-800 p-4">
-                    <button className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-white/5 hover:text-white transition-colors">
+                    <button
+                        onClick={handleSignOut}
+                        className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-white/5 hover:text-white transition-colors"
+                    >
                         <LogOut size={18} />
                         Sign Out
                     </button>
                 </div>
             </aside>
+
 
             {/* Main Content */}
             <main className="flex flex-1 flex-col overflow-hidden bg-[#F5F5F7]">
