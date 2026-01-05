@@ -132,30 +132,29 @@ const AiAssistantModal = ({ isOpen, onClose, job }) => {
 
     return createPortal(
         <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0">
-            <div className="fixed left-[50%] top-[50%] z-[9999] grid w-full max-w-2xl translate-x-[-50%] translate-y-[-50%] gap-4 border bg-white p-0 shadow-lg duration-200 sm:rounded-lg overflow-hidden max-h-[90vh] flex flex-col">
-                {/* Header */}
-                <div className="bg-gray-50 border-b border-gray-100 p-6 flex justify-between items-start flex-shrink-0">
-                    <div>
-                        <div className="flex items-center gap-2 mb-1">
-                            <Sparkles className="h-5 w-5 text-indigo-600" />
-                            <h2 className="text-xl font-bold text-gray-900">Career Copilot</h2>
+            <div className="fixed left-[50%] top-[50%] z-[9999] flex flex-col w-full max-w-2xl translate-x-[-50%] translate-y-[-50%] border bg-white shadow-lg duration-200 sm:rounded-lg max-h-[90vh] overflow-hidden">
+                {/* Fixed Header Section (Title + Tabs) */}
+                <div className="flex-shrink-0 border-b bg-white z-10">
+                    <div className="bg-gray-50 border-b border-gray-100 p-6 flex justify-between items-start">
+                        <div>
+                            <div className="flex items-center gap-2 mb-1">
+                                <Sparkles className="h-5 w-5 text-indigo-600" />
+                                <h2 className="text-xl font-bold text-gray-900">Career Copilot</h2>
+                            </div>
+                            <p className="text-sm text-gray-500">
+                                Assisting with <span className="font-semibold text-gray-900">{job?.job_title}</span> at <span className="font-semibold text-gray-900">{job?.company_name}</span>
+                            </p>
                         </div>
-                        <p className="text-sm text-gray-500">
-                            Assisting with <span className="font-semibold text-gray-900">{job?.job_title}</span> at <span className="font-semibold text-gray-900">{job?.company_name}</span>
-                        </p>
+                        <button
+                            onClick={onClose}
+                            className="rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-gray-950 focus:ring-offset-2"
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-gray-950 focus:ring-offset-2"
-                    >
-                        <X className="h-4 w-4" />
-                    </button>
-                </div>
 
-                {/* Content */}
-                <div className="p-6 pr-2 overflow-y-auto max-h-[85vh]">
-                    {/* Tabs */}
-                    <div className="flex border-b border-gray-200 mb-6">
+                    {/* Tabs - Moved to Header */}
+                    <div className="flex border-b border-gray-200 px-6 pt-2">
                         {tabs.map((tab) => (
                             <button
                                 key={tab.id}
@@ -169,7 +168,10 @@ const AiAssistantModal = ({ isOpen, onClose, job }) => {
                             </button>
                         ))}
                     </div>
+                </div>
 
+                {/* Scrollable Content Body */}
+                <div className="flex-grow overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-gray-300">
                     <div className="grid grid-cols-2 gap-6 mb-6">
                         <div className="space-y-2">
                             <label className="text-sm font-medium leading-none">Job Description</label>
