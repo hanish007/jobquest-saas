@@ -77,3 +77,5 @@ async def analyze_resume(resume: UploadFile = File(...), job_description: str = 
             
     except Exception as e:
         return {"error": str(e)}
+
+# Force rebuild
