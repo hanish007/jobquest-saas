@@ -153,7 +153,7 @@ const AiAssistantModal = ({ isOpen, onClose, job }) => {
                 </div>
 
                 {/* Content */}
-                <div className="p-6 overflow-y-auto">
+                <div className="p-6 pr-2 overflow-y-auto max-h-[85vh]">
                     {/* Tabs */}
                     <div className="flex border-b border-gray-200 mb-6">
                         {tabs.map((tab) => (

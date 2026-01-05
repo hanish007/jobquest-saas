@@ -1,67 +1,59 @@
-# 🚀 JobQuest SaaS
-> **Your Intelligent Career Copilot.**
-> Tracker for job applications powered by Generative AI to craft perfect cover letters and resume fixes.
+# JobQuest SaaS
+[![Live Demo](https://img.shields.io/badge/demo-online-green.svg)](https://[YOUR-FRONTEND-URL].onrender.com)
 
-[![Live Demo](https://img.shields.io/badge/Live_Demo-Visit_App-blue?style=for-the-badge&logo=render)](https://jobquest-backend-ip8m.onrender.com)
+**An intelligent job application tracker that uses GenAI to analyze job descriptions and optimize your career journey.**
 
----
+JobQuest combines a modern Kanban workflow with advanced AI assistance to generate cover letters, fix resumes, and prep for interviews in seconds. It leverages a microservices-inspired architecture to securely handle AI processing while maintaining a responsive user experience.
 
-## 🏗️ Architecture
+## System Architecture
 
-```mermaid
-graph TD
-    User((User)) -->|Browser| Client[React + Vite Frontend]
-    Client -->|HTTPS/JSON| API[FastAPI Backend]
-    
-    subgraph "Cloud Services"
-        API -->|SQL| DB[(Supabase PostgreSQL)]
-        API -->|REST| AI[Google Gemini API]
-    end
-    
-    style Client fill:#61dafb,stroke:#333
-    style API fill:#009688,stroke:#333
-    style DB fill:#3ecf8e,stroke:#333
-    style AI fill:#4285f4,stroke:#333,color:#fff
+```
+[ React Client ]  <─── (Supabase SDK) ───>  [ Supabase (Auth + DB) ]
+       ↕
+    (HTTPS)
+       ↕
+[ Python API ]  ─── (Secure Key) ───>  [ Google Gemini AI ]
 ```
 
-## ✨ Key Features
+## Key Features
 
-- **🤖 AI Integration**: Leverages Google Gemini Pro to generate tailored cover letters and resume suggestions in seconds.
-- **⚡ Real-time Database**: Built on Supabase for instant data synchronization and rigorous RLS security.
-- **☁️ Cloud Deployment**: Fully orchestrated production environment hosted on Render (Frontend + Backend).
+*   **AI Copilot Integration**: Uses **Google Gemini 1.5** via a secure Python proxy to analyze Job Descriptions and generate tailored content (Cover Letters, Interview Prep).
+*   **Secure Authentication**: Implements **Row Level Security (RLS)** in PostgreSQL via Supabase to ensure users can only access their own data.
+*   **Modern Kanban Interface**: A highly responsive drag-and-drop board built with **React** and **@dnd-kit**, featuring optimistic UI updates.
+*   **Prompt Engineering**: Backend-managed system prompts designed to extract specific keywords from resumes and match them against job requirements.
+*   **Scalable Architecture**: Decoupled frontend and backend allowing independent scaling and development of the AI service.
 
----
+## Setup Guide
 
-## 🛠️ Installation
-
-### Prerequisites
-- Node.js & npm
-- Python 3.9+
-- Git
-
-### 1. Clone the Repository
+### 1. Frontend (React)
 ```bash
-git clone https://github.com/yourusername/jobquest-saas.git
-cd jobquest-saas
-```
-
-### 2. Backend Setup
-```bash
-cd backend
-python -m venv venv
-# Windows
-.\venv\Scripts\activate
-# Mac/Linux
-source venv/bin/activate
-
-pip install -r requirements.txt
-python -m uvicorn main:app --reload
-```
-
-### 3. Frontend Setup
-```bash
-# Open a new terminal
-cd jobquest-saas
+# Install dependencies
 npm install
+
+# Start the development server
 npm run dev
 ```
+*App will run at http://localhost:5173*
+
+### 2. Backend (FastAPI)
+```bash
+cd backend
+
+# Create virtual environment
+python -m venv venv
+# Windows: .\venv\Scripts\activate
+# Mac/Linux: source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Start the API server
+python -m uvicorn main:app --reload
+```
+*API will run at http://localhost:8000*
+
+## Tech Stack
+*   **Frontend**: React, Vite, Tailwind CSS, Lucide Icons
+*   **Backend**: Python, FastAPI, Uvicorn
+*   **AI**: Google Generative AI (Gemini)
+*   **Database**: Supabase (PostgreSQL)
