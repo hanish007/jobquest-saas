@@ -1,15 +1,19 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import google.generativeai as genai
 import os
+import pypdf
+import io
+import json
+
 from dotenv import load_dotenv
 load_dotenv()
 # Configure Gemini
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 model = genai.GenerativeModel('gemini-flash-latest')
 app = FastAPI()
-# --- THE CRITICAL FIX ---
+# --- THE CRITICAL FIX --- 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Allows all origins (React, Vercel, etc.)
@@ -39,3 +43,37 @@ async def generate_content(request: AiRequest):
         return {"result": response.text}
     except Exception as e:
         return {"result": f"Error: {str(e)}"}
+
+@app.post("/api/analyze-resume")
+async def analyze_resume(resume: UploadFile = File(...), job_description: str = Form(...)):
+    if not resume.filename.lower().endswith(".pdf"):
+         return {"error": "Invalid file format. Please upload a PDF."}
+    
+    try:
+        content = await resume.read()
+        pdf_reader = pypdf.PdfReader(io.BytesIO(content))
+        text = ""
+        for page in pdf_reader.pages:
+            text += page.extract_text() or ""
+            
+        prompt = f"Act as a Hiring Manager. Compare this RESUME content: {text} against this JOB DESCRIPTION: {job_description}. Return a JSON response with: 'match_score' (integer 0-100), 'missing_keywords' (list of strings), and 'advice' (short string)."
+        
+        response = model.generate_content(prompt)
+        
+        cleaned_text = response.text.strip()
+        # Remove markdown code blocks if present
+        if cleaned_text.startswith("```json"):
+            cleaned_text = cleaned_text[7:]
+        elif cleaned_text.startswith("```"):
+             cleaned_text = cleaned_text[3:]
+        if cleaned_text.endswith("```"):
+            cleaned_text = cleaned_text[:-3]
+        
+        try:
+            json_data = json.loads(cleaned_text)
+            return json_data
+        except json.JSONDecodeError:
+             return {"raw_response": response.text}
+            
+    except Exception as e:
+        return {"error": str(e)}
