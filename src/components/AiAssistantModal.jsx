@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Sparkles, Wand2 } from 'lucide-react';
+import { X, Sparkles, Wand2, Copy, Check } from 'lucide-react';
 
 const AiAssistantModal = ({ isOpen, onClose, job }) => {
     const [activeTab, setActiveTab] = useState('cover');
@@ -9,6 +9,7 @@ const AiAssistantModal = ({ isOpen, onClose, job }) => {
     const [resumeFile, setResumeFile] = useState(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const [result, setResult] = useState(null);
+    const [isCopied, setIsCopied] = useState(false);
 
     const tabs = [
         { id: 'cover', label: 'Cover Letter' },
@@ -16,9 +17,18 @@ const AiAssistantModal = ({ isOpen, onClose, job }) => {
         { id: 'interview', label: 'Interview Prep' }
     ];
 
+    const handleCopyAdvice = async () => {
+        if (result?.advice) {
+            await navigator.clipboard.writeText(result.advice);
+            setIsCopied(true);
+            setTimeout(() => setIsCopied(false), 2000);
+        }
+    };
+
     const handleGenerate = async () => {
         setIsGenerating(true);
         setResult(null); // Clear previous result
+        setIsCopied(false);
 
         try {
             let response;
@@ -102,7 +112,25 @@ const AiAssistantModal = ({ isOpen, onClose, job }) => {
                     </div>
 
                     <div>
-                        <h3 className="font-semibold text-gray-900 mb-2">Advice</h3>
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="font-semibold text-gray-900">Advice</h3>
+                            <button
+                                onClick={handleCopyAdvice}
+                                className="flex items-center gap-1 text-xs text-gray-500 hover:text-indigo-600 transition-colors"
+                            >
+                                {isCopied ? (
+                                    <>
+                                        <Check className="h-3 w-3" />
+                                        <span>Copied!</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Copy className="h-3 w-3" />
+                                        <span>Copy Advice</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
                         <p className="text-sm text-gray-700 leading-relaxed bg-gray-50 p-4 rounded-md border border-gray-200">
                             {result.advice}
                         </p>
