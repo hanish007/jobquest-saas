@@ -6,40 +6,59 @@ const AiAssistantModal = ({ isOpen, onClose, job }) => {
     const [activeTab, setActiveTab] = useState('cover');
     const [jobDescription, setJobDescription] = useState('');
     const [resumeContent, setResumeContent] = useState('');
+    const [resumeFile, setResumeFile] = useState(null);
     const [isGenerating, setIsGenerating] = useState(false);
-    const [result, setResult] = useState('');
-
-    if (!isOpen) return null;
+    const [result, setResult] = useState(null);
 
     const tabs = [
         { id: 'cover', label: 'Cover Letter' },
-        { id: 'resume', label: 'Resume Fixer' },
+        { id: 'resume', label: 'Resume Matcher' },
         { id: 'interview', label: 'Interview Prep' }
     ];
 
     const handleGenerate = async () => {
         setIsGenerating(true);
-        setResult(''); // Clear previous result
+        setResult(null); // Clear previous result
 
         try {
-            const response = await fetch('https://jobquest-backend-ip8m.onrender.com/api/generate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    type: activeTab,
-                    job_description: jobDescription,
-                    user_resume: resumeContent,
-                }),
-            });
+            let response;
+            if (activeTab === 'resume') {
+                if (!resumeFile) {
+                    alert("Please upload a PDF resume.");
+                    setIsGenerating(false);
+                    return;
+                }
+                const formData = new FormData();
+                formData.append('resume', resumeFile);
+                formData.append('job_description', jobDescription);
+
+                const API_URL = import.meta.env.VITE_API_URL || 'https://jobquest-backend-ip8m.onrender.com';
+                response = await fetch(`${API_URL}/api/analyze-resume`, {
+                    method: 'POST',
+                    body: formData,
+                });
+            } else {
+                const API_URL = import.meta.env.VITE_API_URL || 'https://jobquest-backend-ip8m.onrender.com';
+                response = await fetch(`${API_URL}/api/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        type: activeTab,
+                        job_description: jobDescription,
+                        user_resume: resumeContent,
+                    }),
+                });
+            }
 
             if (!response.ok) {
                 throw new Error('Failed to generate content');
             }
 
             const data = await response.json();
-            setResult(data.result);
+            // content might be in 'result' (text) or directly in data (json for resume)
+            setResult(data.result || data);
         } catch (error) {
             console.error("Error generating content:", error);
             setResult("An error occurred while generating content. Please try again.");
@@ -48,11 +67,74 @@ const AiAssistantModal = ({ isOpen, onClose, job }) => {
         }
     };
 
+    if (!isOpen) return null;
+
+    const renderResult = () => {
+        if (!result) return null;
+
+        if (activeTab === 'resume' && typeof result === 'object') {
+            return (
+                <div className="mt-6 animate-in fade-in slide-in-from-bottom-4">
+                    <div className="mb-4">
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="font-semibold text-gray-900">Match Score</h3>
+                            <span className={`text-lg font-bold ${result.match_score >= 80 ? 'text-green-600' : result.match_score >= 50 ? 'text-yellow-600' : 'text-red-600'}`}>
+                                {result.match_score}%
+                            </span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2.5">
+                            <div
+                                className={`h-2.5 rounded-full ${result.match_score >= 80 ? 'bg-green-600' : result.match_score >= 50 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                                style={{ width: `${result.match_score}%` }}
+                            ></div>
+                        </div>
+                    </div>
+
+                    <div className="mb-4">
+                        <h3 className="font-semibold text-red-600 mb-2">Missing Keywords</h3>
+                        <div className="flex flex-wrap gap-2">
+                            {result.missing_keywords && result.missing_keywords.map((keyword, index) => (
+                                <span key={index} className="px-2 py-1 bg-red-50 text-red-700 text-xs rounded-md border border-red-100">
+                                    {keyword}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 className="font-semibold text-gray-900 mb-2">Advice</h3>
+                        <p className="text-sm text-gray-700 leading-relaxed bg-gray-50 p-4 rounded-md border border-gray-200">
+                            {result.advice}
+                        </p>
+                    </div>
+                </div>
+            );
+        }
+
+        // Default text result
+        return (
+            <div className="mt-6 animate-in fade-in slide-in-from-bottom-4">
+                <div className="mb-2 flex items-center justify-between">
+                    <h3 className="font-semibold text-gray-900">AI Suggestion</h3>
+                    <button
+                        onClick={() => navigator.clipboard.writeText(result)}
+                        className="text-xs text-gray-500 hover:text-gray-900"
+                    >
+                        Copy to Clipboard
+                    </button>
+                </div>
+                <div className="max-h-60 overflow-y-auto rounded-md border border-gray-200 bg-gray-50 p-4 text-sm leading-relaxed text-gray-700 whitespace-pre-wrap">
+                    {result}
+                </div>
+            </div>
+        );
+    };
+
     return createPortal(
         <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0">
-            <div className="fixed left-[50%] top-[50%] z-[9999] grid w-full max-w-2xl translate-x-[-50%] translate-y-[-50%] gap-4 border bg-white p-0 shadow-lg duration-200 sm:rounded-lg overflow-hidden">
+            <div className="fixed left-[50%] top-[50%] z-[9999] grid w-full max-w-2xl translate-x-[-50%] translate-y-[-50%] gap-4 border bg-white p-0 shadow-lg duration-200 sm:rounded-lg overflow-hidden max-h-[90vh] flex flex-col">
                 {/* Header */}
-                <div className="bg-gray-50 border-b border-gray-100 p-6 flex justify-between items-start">
+                <div className="bg-gray-50 border-b border-gray-100 p-6 flex justify-between items-start flex-shrink-0">
                     <div>
                         <div className="flex items-center gap-2 mb-1">
                             <Sparkles className="h-5 w-5 text-indigo-600" />
@@ -71,7 +153,7 @@ const AiAssistantModal = ({ isOpen, onClose, job }) => {
                 </div>
 
                 {/* Content */}
-                <div className="p-6">
+                <div className="p-6 overflow-y-auto">
                     {/* Tabs */}
                     <div className="flex border-b border-gray-200 mb-6">
                         {tabs.map((tab) => (
@@ -99,13 +181,33 @@ const AiAssistantModal = ({ isOpen, onClose, job }) => {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium leading-none">My Resume</label>
-                            <textarea
-                                className="flex min-h-[120px] w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                placeholder="Paste your resume content..."
-                                value={resumeContent}
-                                onChange={(e) => setResumeContent(e.target.value)}
-                            />
+                            <label className="text-sm font-medium leading-none">
+                                {activeTab === 'resume' ? 'Upload Resume (PDF)' : 'My Resume Content'}
+                            </label>
+                            {activeTab === 'resume' ? (
+                                <div className="flex items-center justify-center w-full">
+                                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                            <p className="mb-2 text-sm text-gray-500"><span className="font-semibold">Click to upload</span> or drag and drop</p>
+                                            <p className="text-xs text-gray-500">PDF (MAX. 5MB)</p>
+                                            {resumeFile && <p className="mt-2 text-sm font-medium text-indigo-600">{resumeFile.name}</p>}
+                                        </div>
+                                        <input
+                                            type="file"
+                                            className="hidden"
+                                            accept=".pdf"
+                                            onChange={(e) => setResumeFile(e.target.files[0])}
+                                        />
+                                    </label>
+                                </div>
+                            ) : (
+                                <textarea
+                                    className="flex min-h-[120px] w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    placeholder="Paste your resume content..."
+                                    value={resumeContent}
+                                    onChange={(e) => setResumeContent(e.target.value)}
+                                />
+                            )}
                         </div>
                     </div>
 
@@ -117,33 +219,18 @@ const AiAssistantModal = ({ isOpen, onClose, job }) => {
                         {isGenerating ? (
                             <>
                                 <Wand2 className="mr-2 h-4 w-4 animate-spin" />
-                                Generating Magic...
+                                {activeTab === 'resume' ? 'Analyzing...' : 'Generating Magic...'}
                             </>
                         ) : (
                             <>
                                 <Wand2 className="mr-2 h-4 w-4" />
-                                Generate with AI ✨
+                                {activeTab === 'resume' ? 'Analyze Match' : 'Generate with AI ✨'}
                             </>
                         )}
                     </button>
 
                     {/* AI Result */}
-                    {result && (
-                        <div className="mt-6 animate-in fade-in slide-in-from-bottom-4">
-                            <div className="mb-2 flex items-center justify-between">
-                                <h3 className="font-semibold text-gray-900">AI Suggestion</h3>
-                                <button
-                                    onClick={() => navigator.clipboard.writeText(result)}
-                                    className="text-xs text-gray-500 hover:text-gray-900"
-                                >
-                                    Copy to Clipboard
-                                </button>
-                            </div>
-                            <div className="max-h-60 overflow-y-auto rounded-md border border-gray-200 bg-gray-50 p-4 text-sm leading-relaxed text-gray-700 whitespace-pre-wrap">
-                                {result}
-                            </div>
-                        </div>
-                    )}
+                    {renderResult()}
                 </div>
             </div>
         </div>,
