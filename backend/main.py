@@ -27,6 +27,9 @@ class AiRequest(BaseModel):
     job_description: str
     user_resume: str
 
+class InterviewRequest(BaseModel):
+    job_description: str
+
 @app.get("/")
 async def health_check():
     return {"status": "active", "service": "JobQuest AI API"}
@@ -80,6 +83,33 @@ async def analyze_resume(resume: UploadFile = File(...), job_description: str = 
         except json.JSONDecodeError:
              return {"raw_response": response.text}
             
+    except Exception as e:
+        return {"error": str(e)}
+
+
+
+@app.post("/api/interview-prep")
+async def generate_interview_questions(request: InterviewRequest):
+    try:
+        prompt = f"Act as a Technical Interviewer. Generate 5 interview questions for this JOB DESCRIPTION: {request.job_description}. Return a JSON object with a key 'questions' containing a list of objects, where each object has 'question' (string), 'type' (Technical/Behavioral), and 'suggested_answer' (short string)."
+        
+        response = model.generate_content(prompt)
+        cleaned_text = response.text.strip()
+        
+        # Remove markdown code blocks if present
+        if cleaned_text.startswith("```json"):
+            cleaned_text = cleaned_text[7:]
+        elif cleaned_text.startswith("```"):
+             cleaned_text = cleaned_text[3:]
+        if cleaned_text.endswith("```"):
+            cleaned_text = cleaned_text[:-3]
+
+        try:
+            json_data = json.loads(cleaned_text)
+            return json_data
+        except json.JSONDecodeError:
+             return {"raw_response": response.text}
+
     except Exception as e:
         return {"error": str(e)}
 
