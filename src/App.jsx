@@ -1,4 +1,10 @@
+import React, { useState, useEffect } from 'react';
+import { supabase } from './lib/supabase';
+import KanbanBoard from './components/KanbanBoard';
+import DashboardLayout from './components/DashboardLayout';
+import Auth from './components/Auth';
 import LandingPage from './components/LandingPage';
+import { Loader2 } from 'lucide-react';
 
 function App() {
   const [session, setSession] = useState(null);
