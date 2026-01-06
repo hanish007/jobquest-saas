@@ -26,6 +26,11 @@ class AiRequest(BaseModel):
     type: str
     job_description: str
     user_resume: str
+
+@app.get("/")
+async def health_check():
+    return {"status": "active", "service": "JobQuest AI API"}
+
 @app.post("/api/generate")
 async def generate_content(request: AiRequest):
     print(f"Received request: {request.type}") # Log to terminal
