@@ -1,14 +1,9 @@
-import React from 'react';
-import { useState, useEffect } from 'react';
-import { supabase } from './lib/supabase';
-import KanbanBoard from './components/KanbanBoard';
-import DashboardLayout from './components/DashboardLayout';
-import Auth from './components/Auth';
-import { Loader2 } from 'lucide-react';
+import LandingPage from './components/LandingPage';
 
 function App() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showAuth, setShowAuth] = useState(false);
 
   useEffect(() => {
     // Check initial session
@@ -22,6 +17,10 @@ function App() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      // Reset auth view when session changes (e.g. login or logout)
+      if (session) {
+        setShowAuth(false);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -36,7 +35,10 @@ function App() {
   }
 
   if (!session) {
-    return <Auth />;
+    if (showAuth) {
+      return <Auth />; // Ideally Auth should probably handle a "back" to landing, but for now this is fine.
+    }
+    return <LandingPage onGetStarted={() => setShowAuth(true)} />;
   }
 
   return (
