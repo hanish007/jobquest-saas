@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Sparkles, Wand2, Copy, Check } from 'lucide-react';
+import { X, Sparkles, Wand2, Copy, Check, ChevronDown, ChevronUp } from 'lucide-react';
 
 const AiAssistantModal = ({ isOpen, onClose, job }) => {
     const [activeTab, setActiveTab] = useState('cover');
@@ -10,6 +10,7 @@ const AiAssistantModal = ({ isOpen, onClose, job }) => {
     const [isGenerating, setIsGenerating] = useState(false);
     const [result, setResult] = useState(null);
     const [isCopied, setIsCopied] = useState(false);
+    const [expandedQuestion, setExpandedQuestion] = useState(null);
 
     const tabs = [
         { id: 'cover', label: 'Cover Letter' },
@@ -25,13 +26,20 @@ const AiAssistantModal = ({ isOpen, onClose, job }) => {
         }
     };
 
+    const toggleQuestion = (index) => {
+        setExpandedQuestion(expandedQuestion === index ? null : index);
+    };
+
     const handleGenerate = async () => {
         setIsGenerating(true);
         setResult(null); // Clear previous result
         setIsCopied(false);
+        setExpandedQuestion(null);
 
         try {
             let response;
+            const API_URL = import.meta.env.VITE_API_URL || 'https://jobquest-backend-ip8m.onrender.com';
+
             if (activeTab === 'resume') {
                 if (!resumeFile) {
                     alert("Please upload a PDF resume.");
@@ -42,13 +50,21 @@ const AiAssistantModal = ({ isOpen, onClose, job }) => {
                 formData.append('resume', resumeFile);
                 formData.append('job_description', jobDescription);
 
-                const API_URL = import.meta.env.VITE_API_URL || 'https://jobquest-backend-ip8m.onrender.com';
                 response = await fetch(`${API_URL}/api/analyze-resume`, {
                     method: 'POST',
                     body: formData,
                 });
+            } else if (activeTab === 'interview') {
+                response = await fetch(`${API_URL}/api/interview-prep`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        job_description: jobDescription
+                    }),
+                });
             } else {
-                const API_URL = import.meta.env.VITE_API_URL || 'https://jobquest-backend-ip8m.onrender.com';
                 response = await fetch(`${API_URL}/api/generate`, {
                     method: 'POST',
                     headers: {
@@ -67,7 +83,7 @@ const AiAssistantModal = ({ isOpen, onClose, job }) => {
             }
 
             const data = await response.json();
-            // content might be in 'result' (text) or directly in data (json for resume)
+            // content might be in 'result' (text) or directly in data (json for resume/interview)
             setResult(data.result || data);
         } catch (error) {
             console.error("Error generating content:", error);
@@ -139,6 +155,48 @@ const AiAssistantModal = ({ isOpen, onClose, job }) => {
             );
         }
 
+        if (activeTab === 'interview' && result.questions) {
+            return (
+                <div className="mt-6 animate-in fade-in slide-in-from-bottom-4 space-y-4">
+                    <h3 className="font-semibold text-gray-900">Interview Questions</h3>
+                    <div className="space-y-3">
+                        {result.questions.map((q, index) => (
+                            <div key={index} className="border border-gray-200 rounded-lg bg-gray-50 overflow-hidden">
+                                <button
+                                    onClick={() => toggleQuestion(index)}
+                                    className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-100 transition-colors focus:outline-none"
+                                >
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <span className={`px-2 py-0.5 text-[10px] font-medium rounded-full border ${q.type === 'Technical' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-purple-50 text-purple-700 border-purple-200'}`}>
+                                                {q.type}
+                                            </span>
+                                        </div>
+                                        <p className="text-sm font-medium text-gray-900">{q.question}</p>
+                                    </div>
+                                    {expandedQuestion === index ? (
+                                        <ChevronUp className="h-4 w-4 text-gray-500 flex-shrink-0 ml-4" />
+                                    ) : (
+                                        <ChevronDown className="h-4 w-4 text-gray-500 flex-shrink-0 ml-4" />
+                                    )}
+                                </button>
+                                {expandedQuestion === index && (
+                                    <div className="px-4 pb-4 pt-0 animate-in slide-in-from-top-2">
+                                        <div className="p-3 bg-white rounded border border-gray-100 mt-2">
+                                            <p className="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wider">Suggested Answer</p>
+                                            <p className="text-sm text-gray-700 leading-relaxed">
+                                                {q.suggested_answer}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )
+        }
+
         // Default text result
         return (
             <div className="mt-6 animate-in fade-in slide-in-from-bottom-4">
@@ -200,7 +258,7 @@ const AiAssistantModal = ({ isOpen, onClose, job }) => {
 
                 {/* Scrollable Content Body */}
                 <div className="flex-grow overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-gray-300">
-                    <div className="grid grid-cols-2 gap-6 mb-6">
+                    <div className={`grid gap-6 mb-6 ${activeTab === 'interview' ? 'grid-cols-1' : 'grid-cols-2'}`}>
                         <div className="space-y-2">
                             <label className="text-sm font-medium leading-none">Job Description</label>
                             <textarea
@@ -210,35 +268,38 @@ const AiAssistantModal = ({ isOpen, onClose, job }) => {
                                 onChange={(e) => setJobDescription(e.target.value)}
                             />
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium leading-none">
-                                {activeTab === 'resume' ? 'Upload Resume (PDF)' : 'My Resume Content'}
-                            </label>
-                            {activeTab === 'resume' ? (
-                                <div className="flex items-center justify-center w-full">
-                                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-                                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                            <p className="mb-2 text-sm text-gray-500"><span className="font-semibold">Click to upload</span> or drag and drop</p>
-                                            <p className="text-xs text-gray-500">PDF (MAX. 5MB)</p>
-                                            {resumeFile && <p className="mt-2 text-sm font-medium text-indigo-600">{resumeFile.name}</p>}
-                                        </div>
-                                        <input
-                                            type="file"
-                                            className="hidden"
-                                            accept=".pdf"
-                                            onChange={(e) => setResumeFile(e.target.files[0])}
-                                        />
-                                    </label>
-                                </div>
-                            ) : (
-                                <textarea
-                                    className="flex min-h-[120px] w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                    placeholder="Paste your resume content..."
-                                    value={resumeContent}
-                                    onChange={(e) => setResumeContent(e.target.value)}
-                                />
-                            )}
-                        </div>
+
+                        {activeTab !== 'interview' && (
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium leading-none">
+                                    {activeTab === 'resume' ? 'Upload Resume (PDF)' : 'My Resume Content'}
+                                </label>
+                                {activeTab === 'resume' ? (
+                                    <div className="flex items-center justify-center w-full">
+                                        <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                                <p className="mb-2 text-sm text-gray-500"><span className="font-semibold">Click to upload</span> or drag and drop</p>
+                                                <p className="text-xs text-gray-500">PDF (MAX. 5MB)</p>
+                                                {resumeFile && <p className="mt-2 text-sm font-medium text-indigo-600">{resumeFile.name}</p>}
+                                            </div>
+                                            <input
+                                                type="file"
+                                                className="hidden"
+                                                accept=".pdf"
+                                                onChange={(e) => setResumeFile(e.target.files[0])}
+                                            />
+                                        </label>
+                                    </div>
+                                ) : (
+                                    <textarea
+                                        className="flex min-h-[120px] w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                        placeholder="Paste your resume content..."
+                                        value={resumeContent}
+                                        onChange={(e) => setResumeContent(e.target.value)}
+                                    />
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     <button
@@ -249,12 +310,24 @@ const AiAssistantModal = ({ isOpen, onClose, job }) => {
                         {isGenerating ? (
                             <>
                                 <Wand2 className="mr-2 h-4 w-4 animate-spin" />
-                                {activeTab === 'resume' ? 'Analyzing...' : 'Generating Magic...'}
+                                {(() => {
+                                    switch (activeTab) {
+                                        case 'resume': return 'Analyzing...';
+                                        case 'interview': return 'Generating Questions...';
+                                        default: return 'Generating Magic...';
+                                    }
+                                })()}
                             </>
                         ) : (
                             <>
                                 <Wand2 className="mr-2 h-4 w-4" />
-                                {activeTab === 'resume' ? 'Analyze Match' : 'Generate with AI ✨'}
+                                {(() => {
+                                    switch (activeTab) {
+                                        case 'resume': return 'Analyze Match';
+                                        case 'interview': return 'Generate Questions';
+                                        default: return 'Generate with AI ✨';
+                                    }
+                                })()}
                             </>
                         )}
                     </button>
