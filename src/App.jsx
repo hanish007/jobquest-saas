@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from './lib/supabase';
 import KanbanBoard from './components/KanbanBoard';
+import DashboardHome from './components/DashboardHome';
 import DashboardLayout from './components/DashboardLayout';
 import Auth from './components/Auth';
 import LandingPage from './components/LandingPage';
@@ -11,7 +12,7 @@ function App() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showAuth, setShowAuth] = useState(false);
-  const [currentView, setCurrentView] = useState('board');
+  const [currentView, setCurrentView] = useState('dashboard');
 
   useEffect(() => {
     // Check initial session
@@ -49,9 +50,22 @@ function App() {
     return <LandingPage onGetStarted={() => setShowAuth(true)} />;
   }
 
+  const renderContent = () => {
+    switch (currentView) {
+      case 'dashboard':
+        return <DashboardHome />;
+      case 'board':
+        return <KanbanBoard />;
+      case 'settings':
+        return <SettingsPage />;
+      default:
+        return <DashboardHome />;
+    }
+  };
+
   return (
     <DashboardLayout currentView={currentView} onNavigate={setCurrentView}>
-      {currentView === 'settings' ? <SettingsPage /> : <KanbanBoard />}
+      {renderContent()}
     </DashboardLayout>
   );
 }
