@@ -4,12 +4,14 @@ import KanbanBoard from './components/KanbanBoard';
 import DashboardLayout from './components/DashboardLayout';
 import Auth from './components/Auth';
 import LandingPage from './components/LandingPage';
+import SettingsPage from './components/SettingsPage';
 import { Loader2 } from 'lucide-react';
 
 function App() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showAuth, setShowAuth] = useState(false);
+  const [currentView, setCurrentView] = useState('board');
 
   useEffect(() => {
     // Check initial session
@@ -48,8 +50,8 @@ function App() {
   }
 
   return (
-    <DashboardLayout>
-      <KanbanBoard />
+    <DashboardLayout currentView={currentView} onNavigate={setCurrentView}>
+      {currentView === 'settings' ? <SettingsPage /> : <KanbanBoard />}
     </DashboardLayout>
   );
 }

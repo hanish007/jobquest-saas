@@ -13,7 +13,7 @@ import {
     arrayMove,
     sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
-import { Loader2, Plus } from 'lucide-react';
+import { Loader2, Plus, TrendingUp, Users, AlertCircle } from 'lucide-react';
 import KanbanColumn from './KanbanColumn';
 import JobCard from './JobCard';
 import { supabase } from '../lib/supabase';
@@ -196,6 +196,14 @@ const KanbanBoard = () => {
         }, undefined)
     ) : null;
 
+    // --- Metrics Calculation ---
+    const totalJobs = Object.values(columns).reduce((acc, col) => acc + col.length, 0);
+    const activeInterviews = columns.interview.length;
+    // Mock "Action Required" logic: jobs in wishlist/applied > 7 days old (using mock date for now as we don't have created_at yet)
+    // For now, let's just count jobs in 'Applied' as needing follow-up if list is long
+    const actionRequired = columns.applied.length;
+    // ---------------------------
+
     if (loading) {
         return (
             <div className="flex h-screen items-center justify-center bg-gray-50">
@@ -209,17 +217,51 @@ const KanbanBoard = () => {
             {/* Toolbar */}
             <div className="flex h-16 items-center justify-between bg-white px-6 border-b border-gray-200">
                 <h2 className="text-lg font-semibold text-gray-900">Pipeline</h2>
-                <button
-                    onClick={() => setIsModalOpen(true)}
-                    className="flex items-center gap-2 rounded-lg bg-[#0F1117] px-4 py-2 text-sm font-medium text-white hover:bg-black/90 transition-colors"
-                >
-                    <Plus size={16} />
-                    Add Job
-                </button>
+                <div className="flex items-center gap-4">
+                    {/* Stats Bar (Desktop) */}
+                    <div className="hidden lg:flex items-center gap-4 mr-6">
+                        <div className="flex items-center gap-2 px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-sm font-medium">
+                            <TrendingUp size={16} />
+                            <span>Total Jobs: {totalJobs}</span>
+                        </div>
+                        <div className="flex items-center gap-2 px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-sm font-medium">
+                            <Users size={16} />
+                            <span>Interviews: {activeInterviews}</span>
+                        </div>
+                        <div className="flex items-center gap-2 px-3 py-1 bg-orange-50 text-orange-700 rounded-full text-sm font-medium">
+                            <AlertCircle size={16} />
+                            <span>Action Required: {actionRequired}</span>
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={() => setIsModalOpen(true)}
+                        className="flex items-center gap-2 rounded-lg bg-[#0F1117] px-4 py-2 text-sm font-medium text-white hover:bg-black/90 transition-colors"
+                    >
+                        <Plus size={16} />
+                        Add Job
+                    </button>
+                </div>
             </div>
 
             {/* Board Canvas */}
             <div className="flex-1 overflow-x-auto p-6">
+                {/* Mobile Stats Bar */}
+                <div className="lg:hidden grid grid-cols-3 gap-4 mb-6">
+                    <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center">
+                        <span className="text-2xl font-bold text-gray-900">{totalJobs}</span>
+                        <span className="text-xs text-gray-500 font-medium mt-1">Total Jobs</span>
+                    </div>
+                    <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center">
+                        <span className="text-2xl font-bold text-purple-600">{activeInterviews}</span>
+                        <span className="text-xs text-gray-500 font-medium mt-1">Interviews</span>
+                    </div>
+                    <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center">
+                        <span className="text-2xl font-bold text-orange-600">{actionRequired}</span>
+                        <span className="text-xs text-gray-500 font-medium mt-1">Action Req.</span>
+                    </div>
+                </div>
+
                 <div className="flex h-full items-start gap-6">
                     <DndContext
                         sensors={sensors}

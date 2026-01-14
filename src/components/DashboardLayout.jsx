@@ -3,10 +3,16 @@ import { LayoutDashboard, Kanban, Settings, LogOut } from 'lucide-react';
 
 import { supabase } from '../lib/supabase';
 
-const DashboardLayout = ({ children }) => {
+const DashboardLayout = ({ children, currentView, onNavigate }) => {
     const handleSignOut = async () => {
         await supabase.auth.signOut();
     };
+
+    const navItemClass = (viewName) =>
+        `flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${currentView === viewName
+            ? 'bg-white/10 text-white'
+            : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+        }`;
 
     return (
         <div className="flex h-screen w-full bg-[#FAFAFA]">
@@ -17,27 +23,27 @@ const DashboardLayout = ({ children }) => {
                 </div>
 
                 <nav className="flex-1 space-y-1 px-3 py-4">
-                    <a
-                        href="#"
-                        className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-gray-400 transition-colors hover:bg-gray-800 hover:text-white"
+                    <button
+                        onClick={() => onNavigate('dashboard')}
+                        className={navItemClass('dashboard')}
                     >
                         <LayoutDashboard size={18} />
                         Dashboard
-                    </a>
-                    <a
-                        href="#"
-                        className="flex w-full items-center gap-3 rounded-md bg-white/10 px-3 py-2 text-sm font-medium text-white transition-colors"
+                    </button>
+                    <button
+                        onClick={() => onNavigate('board')}
+                        className={navItemClass('board')}
                     >
                         <Kanban size={18} />
                         Board
-                    </a>
-                    <a
-                        href="#"
-                        className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-gray-400 transition-colors hover:bg-gray-800 hover:text-white"
+                    </button>
+                    <button
+                        onClick={() => onNavigate('settings')}
+                        className={navItemClass('settings')}
                     >
                         <Settings size={18} />
                         Settings
-                    </a>
+                    </button>
                 </nav>
 
                 <div className="border-t border-gray-800 p-4">
