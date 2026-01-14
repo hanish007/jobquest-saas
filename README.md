@@ -1,59 +1,63 @@
-# JobQuest SaaS
-[![Live Demo](https://img.shields.io/badge/demo-online-green.svg)](https://[YOUR-FRONTEND-URL].onrender.com)
+# Career Copilot: AI-Powered Job Application Tracker
 
-**An intelligent job application tracker that uses GenAI to analyze job descriptions and optimize your career journey.**
+![Career Copilot Banner](https://via.placeholder.com/1200x400?text=Career+Copilot+Dashboard+Screenshot)
 
-JobQuest combines a modern Kanban workflow with advanced AI assistance to generate cover letters, fix resumes, and prep for interviews in seconds. It leverages a microservices-inspired architecture to securely handle AI processing while maintaining a responsive user experience.
+## The Problem
+Job hunting is chaotic. Applications are scattered across emails, resumes need constant tailoring to pass ATS filters, and interview preparation is often generic and unhelpful. Keeping track of everything while trying to stand out is a full-time job in itself.
 
-## System Architecture
+## The Solution
+**Career Copilot** is a full-stack SaaS platform designed to streamline your job search. It combines a drag-and-drop Kanban board for tracking applications with an AI-powered assistant that analyzes your resume against job descriptions and generates custom interview questions to help you land your dream job.
 
-```
-[ React Client ]  <─── (Supabase SDK) ───>  [ Supabase (Auth + DB) ]
-       ↕
-    (HTTPS)
-       ↕
-[ Python API ]  ─── (Secure Key) ───>  [ Google Gemini AI ]
-```
+## Tech Stack
+
+![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
+![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
+![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![Gemini AI](https://img.shields.io/badge/Google%20Gemini-8E75B2?style=for-the-badge&logo=google&logoColor=white)
+![Render](https://img.shields.io/badge/Render-%46E3B7.svg?style=for-the-badge&logo=render&logoColor=white)
 
 ## Key Features
 
-*   **AI Copilot Integration**: Uses **Google Gemini 1.5** via a secure Python proxy to analyze Job Descriptions and generate tailored content (Cover Letters, Interview Prep).
-*   **Secure Authentication**: Implements **Row Level Security (RLS)** in PostgreSQL via Supabase to ensure users can only access their own data.
-*   **Modern Kanban Interface**: A highly responsive drag-and-drop board built with **React** and **@dnd-kit**, featuring optimistic UI updates.
-*   **Prompt Engineering**: Backend-managed system prompts designed to extract specific keywords from resumes and match them against job requirements.
-*   **Scalable Architecture**: Decoupled frontend and backend allowing independent scaling and development of the AI service.
+### 📊 Kanban Board
+Visualize your job hunt status with an intuitive drag-and-drop board. Track applications from "Wishlist" to "Applied", "Interview", and "Offer".
 
-## Setup Guide
+### 🧠 AI Resume Matcher
+Upload your PDF resume and a job description. Our Gemini-powered AI analyzes the match, provides a score (0-100), highlights missing keywords, and offers actionable advice to improve your chances.
 
-### 1. Frontend (React)
+### 🎯 Interview Simulator
+Stop practicing with generic questions. Career Copilot generates custom Technical and Behavioral interview questions tailored specifically to the job description you are targeting. Includes an interactive "Safe Mode" to test your answers.
+
+## Architecture
+
+```mermaid
+graph TD
+    Client[React Frontend] -->|HTTP/JSON| Backend[FastAPI Backend]
+    Client -->|Auth/Data| DB[Supabase]
+    Backend -->|Generation| AI[Gemini API]
+    Backend -->|PDF Parsing| PDF[PyPDF]
+```
+
+## Installation
+
+### Frontend (React)
 ```bash
-# Install dependencies
+cd jobquest-saas
 npm install
-
-# Start the development server
 npm run dev
 ```
-*App will run at http://localhost:5173*
 
-### 2. Backend (FastAPI)
+### Backend (FastAPI)
 ```bash
 cd backend
-
-# Create virtual environment
-python -m venv venv
-# Windows: .\venv\Scripts\activate
-# Mac/Linux: source venv/bin/activate
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Start the API server
-python -m uvicorn main:app --reload
+uvicorn main:app --reload
 ```
-*API will run at http://localhost:8000*
 
-## Tech Stack
-*   **Frontend**: React, Vite, Tailwind CSS, Lucide Icons
-*   **Backend**: Python, FastAPI, Uvicorn
-*   **AI**: Google Generative AI (Gemini)
-*   **Database**: Supabase (PostgreSQL)
+## Security & Reliability
+- **Strict JSON Enforcement**: Backend implements robust cleaning and retry logic to ensure AI responses are always valid JSON.
+- **Circuit Breakers**: Fallback mechanisms prevent UI crashes even if the AI service experiences issues.
+
+---
+&copy; 2024 Career Copilot. Built with ❤️ and AI.
