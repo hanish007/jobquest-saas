@@ -1,9 +1,9 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Sparkles, GripVertical } from 'lucide-react';
+import { Sparkles, GripVertical, Trash2 } from 'lucide-react';
 
-const JobCard = ({ job, onOpenAi }) => {
+const JobCard = ({ job, onOpenAi, onDelete }) => {
     const {
         attributes,
         listeners,
@@ -19,6 +19,13 @@ const JobCard = ({ job, onOpenAi }) => {
         transform: CSS.Transform.toString(transform),
         transition,
         opacity: isDragging ? 0.5 : 1,
+    };
+
+    const handleDelete = (e) => {
+        e.stopPropagation();
+        if (window.confirm('Are you sure you want to delete this job?')) {
+            onDelete(job.id);
+        }
     };
 
     return (
@@ -37,9 +44,19 @@ const JobCard = ({ job, onOpenAi }) => {
                         <p className="text-xs font-medium text-gray-500">{job.company_name}</p>
                     </div>
                 </div>
-                <button className="text-gray-400 opacity-0 group-hover:opacity-100 hover:text-indigo-600 transition-all">
-                    <GripVertical size={16} />
-                </button>
+                <div className="flex items-center opacity-0 group-hover:opacity-100 transition-all gap-1">
+                    <button
+                        onClick={handleDelete}
+                        onPointerDown={(e) => e.stopPropagation()} // Prevent drag start on click
+                        className="text-gray-400 hover:text-red-600 transition-colors p-1"
+                        title="Delete Job"
+                    >
+                        <Trash2 size={16} />
+                    </button>
+                    <button className="text-gray-400 hover:text-indigo-600 transition-colors p-1 cursor-grab">
+                        <GripVertical size={16} />
+                    </button>
+                </div>
             </div>
 
             <div className="flex items-center gap-2">

@@ -73,6 +73,28 @@ const KanbanBoard = () => {
         }
     };
 
+    const handleDeleteJob = async (jobId) => {
+        // Optimistic update
+        setColumns(prev => {
+            const newColumns = { ...prev };
+            Object.keys(newColumns).forEach(key => {
+                newColumns[key] = newColumns[key].filter(job => job.id !== jobId);
+            });
+            return newColumns;
+        });
+
+        const { error } = await supabase
+            .from('applications')
+            .delete()
+            .eq('id', jobId);
+
+        if (error) {
+            console.error('Error deleting application:', error);
+            // Optionally revert optimistic update here, but for now we'll imply success
+            fetchApplications(); // Re-fetch to ensure sync
+        }
+    };
+
     const sensors = useSensors(
         useSensor(PointerSensor),
         useSensor(KeyboardSensor, {
@@ -270,10 +292,10 @@ const KanbanBoard = () => {
                         onDragOver={handleDragOver}
                         onDragEnd={handleDragEnd}
                     >
-                        <KanbanColumn id="wishlist" title="Wishlist" jobs={columns.wishlist} onOpenAi={setSelectedJobForAi} />
-                        <KanbanColumn id="applied" title="Applied" jobs={columns.applied} onOpenAi={setSelectedJobForAi} />
-                        <KanbanColumn id="interview" title="Interview" jobs={columns.interview} onOpenAi={setSelectedJobForAi} />
-                        <KanbanColumn id="offer" title="Offer" jobs={columns.offer} onOpenAi={setSelectedJobForAi} />
+                        <KanbanColumn id="wishlist" title="Wishlist" jobs={columns.wishlist} onOpenAi={setSelectedJobForAi} onDelete={handleDeleteJob} />
+                        <KanbanColumn id="applied" title="Applied" jobs={columns.applied} onOpenAi={setSelectedJobForAi} onDelete={handleDeleteJob} />
+                        <KanbanColumn id="interview" title="Interview" jobs={columns.interview} onOpenAi={setSelectedJobForAi} onDelete={handleDeleteJob} />
+                        <KanbanColumn id="offer" title="Offer" jobs={columns.offer} onOpenAi={setSelectedJobForAi} onDelete={handleDeleteJob} />
 
                         <DragOverlay dropAnimation={dropAnimation}>
                             {activeItem ? <JobCard job={activeItem} /> : null}
