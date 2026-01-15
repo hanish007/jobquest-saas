@@ -169,7 +169,7 @@ const KanbanBoard = () => {
         });
     };
 
-    const handleDragEnd = (event) => {
+    const handleDragEnd = async (event) => {
         const { active, over } = event;
         const overId = over?.id;
 
@@ -182,9 +182,26 @@ const KanbanBoard = () => {
         const overContainer = findContainer(overId);
 
         if (activeContainer && overContainer) {
-            // Call update status if the container is valid
-            updateApplicationStatus(active.id, activeContainer);
+            // FIX: Use overContainer as the new status, because activeContainer might refer to the old location if state is stale
+            // or if we just want to be explicit about the destination.
+            if (activeContainer !== overContainer) {
+                // Optimistic update was handled by DragOver, but let's ensure Supabase is updated with the NEW container.
+                const { error } = await supabase
+                    .from('applications')
+                    .update({ status: overContainer })
+                    .eq('id', active.id);
 
+                if (error) {
+                    console.error('Failed to save move:', error);
+                    // Revert or show notification
+                    alert('Failed to save move. Refreshing...');
+                    fetchApplications();
+                }
+            } else {
+                // Even if containers are same, maybe we reordered. But status doesn't change.
+            }
+
+            // Reordering logic
             if (activeContainer === overContainer) {
                 const activeIndex = columns[activeContainer].findIndex((item) => item.id === active.id);
                 const overIndex = columns[overContainer].findIndex((item) => item.id === overId);

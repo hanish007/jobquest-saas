@@ -7,6 +7,7 @@ const DashboardHome = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        console.log("DashboardHome mounted. Fetching fresh data...");
         fetchJobs();
     }, []);
 
@@ -15,20 +16,21 @@ const DashboardHome = () => {
         const { data, error } = await supabase
             .from('applications')
             .select('*')
-            .order('created_at', { ascending: false }); // Assuming created_at exists, if not just default order
+            .order('created_at', { ascending: false });
 
         if (error) {
             console.error('Error fetching jobs:', error);
         } else {
+            console.log("Fetched jobs:", data?.length);
             setJobs(data || []);
         }
         setLoading(false);
     };
 
-    // Metrics
+    // Metrics - Calculated from fresh 'jobs' state
     const totalJobs = jobs.length;
     const activeInterviews = jobs.filter(job => job.status?.toLowerCase() === 'interview').length;
-    const actionRequired = jobs.filter(job => job.status?.toLowerCase() === 'applied').length; // Logic as per previous mockup
+    const actionRequired = jobs.filter(job => job.status?.toLowerCase() === 'applied').length;
 
     const recentJobs = jobs.slice(0, 5);
     const upcomingInterviews = jobs.filter(job => job.status?.toLowerCase() === 'interview').slice(0, 3);
