@@ -173,7 +173,11 @@ const KanbanBoard = () => {
         const { active, over } = event;
         const overId = over?.id;
 
-        if (active.id in columns && overId in columns) {
+        // 1. Log the Raw Event
+        console.log('🔄 DRAG END:', event);
+
+        if (!overId) {
+            console.log('❌ No destination defined (dropped outside)');
             setActiveId(null);
             return;
         }
@@ -181,26 +185,32 @@ const KanbanBoard = () => {
         const activeContainer = findContainer(active.id);
         const overContainer = findContainer(overId);
 
+        // 2. Log the Intent
+        console.log(`📝 Attempting to move Job ID ${active.id} to Status: "${overContainer}" (from "${activeContainer}")`);
+
         if (activeContainer && overContainer) {
             // FIX: Always update Supabase with the destination container (overContainer).
-            // We removed the (activeContainer !== overContainer) check because handleDragOver ALREADY updated the local state.
-            // So activeContainer IS overContainer by the time we get here. 
-            // We must ensure the DB stays in sync with that optimistically updated state.
+            // Logic: activeContainer IS overContainer here because DragOver updated local state.
 
-            const { error } = await supabase
-                .from('applications')
-                .update({ status: overContainer })
-                .eq('id', active.id);
+            // 4. The Database Commit (Explicit Await with try/catch)
+            try {
+                const { data, error } = await supabase
+                    .from('applications')
+                    .update({ status: overContainer })
+                    .eq('id', active.id)
+                    .select(); // .select() forces return data to verify
 
-            if (error) {
-                console.error('Failed to save move:', error);
-                alert('Failed to save move. Refreshing...');
-                fetchApplications();
-            } else {
-                console.log(`Updated job ${active.id} status to ${overContainer}`);
+                if (error) {
+                    console.error('🔥 SUPABASE ERROR:', error);
+                    alert('Failed to save move: ' + error.message);
+                    fetchApplications(); // Revert/Refresh
+                } else {
+                    console.log('✅ Supabase Success:', data);
+                }
+            } catch (err) {
+                console.error('💥 UNEXPECTED ERROR:', err);
+                alert('Unexpected error saving move.');
             }
-
-
 
             // Reordering logic
             if (activeContainer === overContainer) {
