@@ -182,24 +182,25 @@ const KanbanBoard = () => {
         const overContainer = findContainer(overId);
 
         if (activeContainer && overContainer) {
-            // FIX: Use overContainer as the new status, because activeContainer might refer to the old location if state is stale
-            // or if we just want to be explicit about the destination.
-            if (activeContainer !== overContainer) {
-                // Optimistic update was handled by DragOver, but let's ensure Supabase is updated with the NEW container.
-                const { error } = await supabase
-                    .from('applications')
-                    .update({ status: overContainer })
-                    .eq('id', active.id);
+            // FIX: Always update Supabase with the destination container (overContainer).
+            // We removed the (activeContainer !== overContainer) check because handleDragOver ALREADY updated the local state.
+            // So activeContainer IS overContainer by the time we get here. 
+            // We must ensure the DB stays in sync with that optimistically updated state.
 
-                if (error) {
-                    console.error('Failed to save move:', error);
-                    // Revert or show notification
-                    alert('Failed to save move. Refreshing...');
-                    fetchApplications();
-                }
+            const { error } = await supabase
+                .from('applications')
+                .update({ status: overContainer })
+                .eq('id', active.id);
+
+            if (error) {
+                console.error('Failed to save move:', error);
+                alert('Failed to save move. Refreshing...');
+                fetchApplications();
             } else {
-                // Even if containers are same, maybe we reordered. But status doesn't change.
+                console.log(`Updated job ${active.id} status to ${overContainer}`);
             }
+
+
 
             // Reordering logic
             if (activeContainer === overContainer) {
