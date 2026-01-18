@@ -19,6 +19,7 @@ import JobCard from './JobCard';
 import { supabase } from '../lib/supabase';
 import AddJobModal from './AddJobModal';
 import AiAssistantModal from './AiAssistantModal';
+import EmptyState from './EmptyState';
 
 const KanbanBoard = () => {
     const [columns, setColumns] = useState({
@@ -248,10 +249,26 @@ const KanbanBoard = () => {
 
 
 
+    const totalJobs = Object.values(columns).reduce((acc, col) => acc + col.length, 0);
+
     if (loading) {
         return (
             <div className="flex h-screen items-center justify-center bg-gray-50">
                 <Loader2 className="h-10 w-10 animate-spin text-indigo-600" />
+            </div>
+        );
+    }
+
+    // Empty State Check
+    if (totalJobs === 0 && !loading) {
+        return (
+            <div className="flex h-full flex-col">
+                <EmptyState onAddJob={() => setIsModalOpen(true)} />
+                <AddJobModal
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    onJobAdded={fetchApplications}
+                />
             </div>
         );
     }

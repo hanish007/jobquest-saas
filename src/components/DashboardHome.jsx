@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { Loader2, TrendingUp, Users, AlertCircle, Briefcase, Calendar } from 'lucide-react';
+import EmptyState from './EmptyState';
+import AddJobModal from './AddJobModal';
 
 const DashboardHome = () => {
     const [jobs, setJobs] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         console.log("DashboardHome mounted. Fetching fresh data...");
@@ -40,6 +43,19 @@ const DashboardHome = () => {
             <div className="flex h-full items-center justify-center">
                 <Loader2 className="h-10 w-10 animate-spin text-indigo-600" />
             </div>
+        );
+    }
+
+    if (totalJobs === 0) {
+        return (
+            <>
+                <EmptyState onAddJob={() => setIsModalOpen(true)} />
+                <AddJobModal
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    onJobAdded={fetchJobs}
+                />
+            </>
         );
     }
 
@@ -144,8 +160,14 @@ const DashboardHome = () => {
                     </div>
                 </div>
             </div>
+            <AddJobModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onJobAdded={fetchJobs}
+            />
         </div>
     );
 };
+
 
 export default DashboardHome;
