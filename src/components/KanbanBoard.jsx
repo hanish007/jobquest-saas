@@ -43,7 +43,7 @@ const KanbanBoard = () => {
 
     const fetchApplications = async () => {
         setLoading(true);
-        console.log("Attempting to fetch from Supabase...");
+        // console.log("Attempting to fetch from Supabase...");
         const { data, error } = await supabase
             .from('applications')
             .select('*');
@@ -51,7 +51,7 @@ const KanbanBoard = () => {
         if (error) {
             console.error("Supabase Error:", error);
         } else {
-            console.log("Raw Data from DB:", data);
+            // console.log("Raw Data from DB:", data);
 
             if (data) {
                 setColumns({
@@ -177,10 +177,10 @@ const KanbanBoard = () => {
         const overId = over?.id;
 
         // 1. Log the Raw Event
-        console.log('🔄 DRAG END:', event);
+        // console.log('🔄 DRAG END:', event);
 
         if (!overId) {
-            console.log('❌ No destination defined (dropped outside)');
+            // console.log('❌ No destination defined (dropped outside)');
             setActiveId(null);
             return;
         }
@@ -189,7 +189,7 @@ const KanbanBoard = () => {
         const overContainer = findContainer(overId);
 
         // 2. Log the Intent
-        console.log(`📝 Attempting to move Job ID ${active.id} to Status: "${overContainer}" (from "${activeContainer}")`);
+        // console.log(`📝 Attempting to move Job ID ${active.id} to Status: "${overContainer}" (from "${activeContainer}")`);
 
         if (activeContainer && overContainer) {
             // FIX: Always update Supabase with the destination container (overContainer).
@@ -208,7 +208,7 @@ const KanbanBoard = () => {
                     alert('Failed to save move: ' + error.message);
                     fetchApplications(); // Revert/Refresh
                 } else {
-                    console.log('✅ Supabase Success:', data);
+                    // console.log('✅ Supabase Success:', data);
                 }
             } catch (err) {
                 console.error('💥 UNEXPECTED ERROR:', err);
@@ -326,8 +326,8 @@ const KanbanBoard = () => {
                         key={colId}
                         onClick={() => setActiveTab(colId)}
                         className={`flex-1 border-b-2 py-3 text-sm font-medium capitalize transition-colors ${activeTab === colId
-                                ? 'border-indigo-600 text-indigo-600'
-                                : 'border-transparent text-gray-500 hover:text-gray-700'
+                            ? 'border-indigo-600 text-indigo-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
                             }`}
                     >
                         {colId}

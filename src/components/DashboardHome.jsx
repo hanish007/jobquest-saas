@@ -11,7 +11,7 @@ const DashboardHome = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
-        console.log("DashboardHome mounted. Fetching fresh data...");
+        // console.log("DashboardHome mounted. Fetching fresh data...");
         fetchJobs();
     }, []);
 
@@ -25,7 +25,7 @@ const DashboardHome = () => {
         if (error) {
             console.error('Error fetching jobs:', error);
         } else {
-            console.log("Fetched jobs:", data?.length);
+            // console.log("Fetched jobs:", data?.length);
             setJobs(data || []);
         }
         setLoading(false);
