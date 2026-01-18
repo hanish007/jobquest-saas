@@ -3,13 +3,13 @@ import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import JobCard from './JobCard';
 
-const KanbanColumn = ({ id, title, jobs, onOpenAi, onDelete }) => {
+const KanbanColumn = ({ id, title, jobs, onOpenAi, onDelete, className }) => {
     const { setNodeRef } = useDroppable({
         id: id,
     });
 
     return (
-        <div className="flex h-full w-80 min-w-[320px] shrink-0 flex-col">
+        <div className={`flex h-full w-full flex-col shrink-0 md:w-80 md:min-w-[320px] ${className || ''}`}>
             <div className="mb-3 flex items-center justify-between px-1">
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500">{title}</h3>
                 <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-700">

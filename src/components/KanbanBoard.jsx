@@ -29,6 +29,7 @@ const KanbanBoard = () => {
         interview: [],
         offer: []
     });
+    const [activeTab, setActiveTab] = useState('wishlist');
     const [activeId, setActiveId] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -252,6 +253,12 @@ const KanbanBoard = () => {
 
     const totalJobs = Object.values(columns).reduce((acc, col) => acc + col.length, 0);
 
+    // Helper to determine visibility
+    const isVisible = (id) => {
+        // Desktop: always true. Mobile: only if activeTab matches id.
+        return activeTab === id ? 'flex' : 'hidden md:flex';
+    };
+
     if (loading) {
         return (
             <div className="flex h-full flex-col">
@@ -312,8 +319,24 @@ const KanbanBoard = () => {
                 </div>
             </div>
 
+            {/* Mobile Tabs */}
+            <div className="flex w-full items-center border-b border-gray-200 bg-white md:hidden">
+                {Object.keys(columns).map((colId) => (
+                    <button
+                        key={colId}
+                        onClick={() => setActiveTab(colId)}
+                        className={`flex-1 border-b-2 py-3 text-sm font-medium capitalize transition-colors ${activeTab === colId
+                                ? 'border-indigo-600 text-indigo-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700'
+                            }`}
+                    >
+                        {colId}
+                    </button>
+                ))}
+            </div>
+
             {/* Board Canvas */}
-            <div className="flex-1 overflow-x-auto p-6">
+            <div className="flex-1 overflow-x-auto p-4 md:p-6 bg-gray-50/50">
                 <div className="flex h-full items-start gap-6">
                     <DndContext
                         sensors={sensors}
@@ -322,10 +345,38 @@ const KanbanBoard = () => {
                         onDragOver={handleDragOver}
                         onDragEnd={handleDragEnd}
                     >
-                        <KanbanColumn id="wishlist" title="Wishlist" jobs={columns.wishlist} onOpenAi={setSelectedJobForAi} onDelete={handleDeleteJob} />
-                        <KanbanColumn id="applied" title="Applied" jobs={columns.applied} onOpenAi={setSelectedJobForAi} onDelete={handleDeleteJob} />
-                        <KanbanColumn id="interview" title="Interview" jobs={columns.interview} onOpenAi={setSelectedJobForAi} onDelete={handleDeleteJob} />
-                        <KanbanColumn id="offer" title="Offer" jobs={columns.offer} onOpenAi={setSelectedJobForAi} onDelete={handleDeleteJob} />
+                        <KanbanColumn
+                            id="wishlist"
+                            title="Wishlist"
+                            jobs={columns.wishlist}
+                            onOpenAi={setSelectedJobForAi}
+                            onDelete={handleDeleteJob}
+                            className={isVisible('wishlist')}
+                        />
+                        <KanbanColumn
+                            id="applied"
+                            title="Applied"
+                            jobs={columns.applied}
+                            onOpenAi={setSelectedJobForAi}
+                            onDelete={handleDeleteJob}
+                            className={isVisible('applied')}
+                        />
+                        <KanbanColumn
+                            id="interview"
+                            title="Interview"
+                            jobs={columns.interview}
+                            onOpenAi={setSelectedJobForAi}
+                            onDelete={handleDeleteJob}
+                            className={isVisible('interview')}
+                        />
+                        <KanbanColumn
+                            id="offer"
+                            title="Offer"
+                            jobs={columns.offer}
+                            onOpenAi={setSelectedJobForAi}
+                            onDelete={handleDeleteJob}
+                            className={isVisible('offer')}
+                        />
 
                         <DragOverlay dropAnimation={dropAnimation}>
                             {activeItem ? <JobCard job={activeItem} /> : null}
@@ -347,7 +398,6 @@ const KanbanBoard = () => {
             />
         </div>
     );
-
 };
 
 export default KanbanBoard;
