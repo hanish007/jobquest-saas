@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { Loader2, TrendingUp, Users, AlertCircle, Briefcase, Calendar } from 'lucide-react';
 import EmptyState from './EmptyState';
 import AddJobModal from './AddJobModal';
+import SkeletonLoader from './SkeletonLoader';
 
 const DashboardHome = () => {
     const [jobs, setJobs] = useState([]);
@@ -40,8 +41,40 @@ const DashboardHome = () => {
 
     if (loading) {
         return (
-            <div className="flex h-full items-center justify-center">
-                <Loader2 className="h-10 w-10 animate-spin text-indigo-600" />
+            <div className="flex-1 overflow-y-auto bg-[#F5F5F7] p-8">
+                <header className="mb-8">
+                    <SkeletonLoader className="h-8 w-48 mb-2" />
+                    <SkeletonLoader className="h-4 w-96" />
+                </header>
+
+                {/* Stats Skeleton */}
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-3 mb-8">
+                    {[1, 2, 3].map((i) => (
+                        <div key={i} className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+                            <div className="flex items-center gap-4">
+                                <SkeletonLoader className="h-12 w-12 rounded-full" />
+                                <div className="space-y-2">
+                                    <SkeletonLoader className="h-4 w-24" />
+                                    <SkeletonLoader className="h-8 w-16" />
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Content Skeleton */}
+                <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+                    {[1, 2].map((i) => (
+                        <div key={i} className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm h-64">
+                            <SkeletonLoader className="h-6 w-32 mb-4" />
+                            <div className="space-y-4">
+                                <SkeletonLoader className="h-12 w-full" />
+                                <SkeletonLoader className="h-12 w-full" />
+                                <SkeletonLoader className="h-12 w-full" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
         );
     }

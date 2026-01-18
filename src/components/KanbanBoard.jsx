@@ -20,6 +20,7 @@ import { supabase } from '../lib/supabase';
 import AddJobModal from './AddJobModal';
 import AiAssistantModal from './AiAssistantModal';
 import EmptyState from './EmptyState';
+import SkeletonLoader from './SkeletonLoader';
 
 const KanbanBoard = () => {
     const [columns, setColumns] = useState({
@@ -253,8 +254,30 @@ const KanbanBoard = () => {
 
     if (loading) {
         return (
-            <div className="flex h-screen items-center justify-center bg-gray-50">
-                <Loader2 className="h-10 w-10 animate-spin text-indigo-600" />
+            <div className="flex h-full flex-col">
+                {/* Toolbar Skeleton */}
+                <div className="flex h-16 items-center justify-between bg-white px-6 border-b border-gray-200">
+                    <SkeletonLoader className="h-6 w-32" />
+                    <SkeletonLoader className="h-9 w-24" />
+                </div>
+                {/* Columns Skeleton */}
+                <div className="flex-1 overflow-x-auto p-6">
+                    <div className="flex h-full items-start gap-6">
+                        {[1, 2, 3, 4].map(i => (
+                            <div key={i} className="flex h-full w-80 min-w-[320px] shrink-0 flex-col">
+                                <div className="mb-3 flex items-center justify-between px-1">
+                                    <SkeletonLoader className="h-4 w-24" />
+                                    <SkeletonLoader className="h-5 w-8 rounded-full" />
+                                </div>
+                                <div className="flex flex-1 flex-col gap-3">
+                                    <SkeletonLoader className="h-32 w-full" />
+                                    <SkeletonLoader className="h-32 w-full" />
+                                    <SkeletonLoader className="h-32 w-full" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
         );
     }
